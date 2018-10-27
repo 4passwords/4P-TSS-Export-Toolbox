@@ -1,7 +1,7 @@
 
 #
 #
-# export secrets by template v1.2.3
+# 4P-TSS-Export-Toolbox v1.2.3
 # by jan dijk | MCCS | 4passwords.com
 #
 # features: export by template, by folder or subfolders & export by datechanged after X
