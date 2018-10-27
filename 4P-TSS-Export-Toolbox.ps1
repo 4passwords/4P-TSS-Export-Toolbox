@@ -137,7 +137,7 @@ foreach($secretSummary in $secretSummaries)
     if ($secretSummary.SecretTypeId -eq $templateId)
 	    {
 
-       $secretname = $proxy.GetSecret($token, $secretSummary.SecretId, $false, $null);
+       $secret = $proxy.GetSecret($token, $secretSummary.SecretId, $false, $null);
 
         $Hash = [ordered]@{}
         $Hashindex = [ordered]@{}
