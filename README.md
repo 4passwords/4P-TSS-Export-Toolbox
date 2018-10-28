@@ -33,7 +33,7 @@ To use the script, you need to change the preferences inside the script that are
 # Define the proxy
 $url = "https://yoursecretserver.url/folder"
 
-# craft the 
+# Craft the Authentication Url's
 $urlOauth = $url + "/webservices/sswebservice.asmx"
 $urlWindows = $url + "/winauthwebservices/sswinauthwebservice.asmx"
 
