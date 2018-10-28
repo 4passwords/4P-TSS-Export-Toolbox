@@ -21,11 +21,9 @@ TODO improvements:
 
 To use the script, you need to change the preferences inside the script that are in the top
 
-###### Script preferences / settings
-#
-#
+#Script preferences / settings
 
-# Define the proxy
+#Define the proxy
 $url = "https://yoursecretserver.uri/webservices/sswebservice.asmx"
 
 # the folderid -1 is the root or open a secret in a folder and see the folderid in the url
