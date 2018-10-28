@@ -1,6 +1,6 @@
-#requires -version 3.0
+#requires -version 3.0 
 #
-# export secrets by template v1.2.5
+# export secrets by template v1.2.6
 # by jan dijk | MCCS | 4passwords.com
 # https://github.com/4passwords/4P-TSS-Export-Toolbox
 #
@@ -14,11 +14,12 @@
 # Export all secrets by template from a given date that were updated or changed (good for migrations and or finding out changes overtime0
 # Export foldernames and or override the foldernames in the exportlist (to customize and or be flexible for the import) or export no foldernames at all
 # Export secrets with issue-374730518 to a configurable "Lost and Found" folder
+# Authentication wrapper to use Oauth Authentication, Radius/OTP and Windows Authentication
 #
-# TODO-Improvement: Create Authentication wrapper to use Windows Authentication and other authentication options
+# TODO-TEST: Authentication methods oauth with or withour Radius/OTP are tested, windows authentication needs to be fully tested.
 # TODO-Improvement: Export All templates to a file or console
 # TODO-Improvement: Export also Restricted Secrets, like require comment or checkin/checkout (so they are exported and the secret will be created)
-# TODO-Improvement: Enemurate the Foldername as is done with the Template name (in combination of suppling a path or previous)
+# TODO-Improvement: Enemurate the Foldername as is done with the Template name (the idea is to supply a Full pathname)
 #
 # Note: you will only export secrets that you have permission on and do not have any checkout or requirement comment security options enabled.
 # enable the unlimited administrative mode to make sure you can export all secrets that are in secret server.
@@ -37,7 +38,19 @@
 #
 
 # Define the proxy
-$url = "https://yoursecretserver.url/webservices/sswebservice.asmx"
+$url = "https://yousecretserver.url/folder"
+
+# craft the 
+$urlOauth = $url + "/webservices/sswebservice.asmx"
+$urlWindows = $url + "/winauthwebservices/sswinauthwebservice.asmx"
+
+# script authentication method 
+# use Windows Authentication or Oauth. (optoins: oauth,windows)
+#
+$scriptauth = "oauth"
+#
+# ask for otp / radius
+$authenticateRadiusOTP = $true
 
 #enter the short domainname, local or empty
 $domain = ''
@@ -76,38 +89,93 @@ $exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
 # execution, do not change after this part #
 ############################################
 
-$proxy = New-WebServiceProxy -uri $url -UseDefaultCredential -Namespace "ss"
+write-host "--------------------------------------------"
+write-host "Secret Server URL : " -NoNewline
+if ($scriptauth -eq "oauth")
+    {
+    write-host $urlOauth
+    write-host "Domain: $domain, Authentication method: $scriptauth, Radius/OTP = $authenticateRadiusOTP"   
+    } else {
+    write-host $urlWindows
+    write-host "Domain: $domain, Authentication method: $scriptauth"   
+    }
 
 #convert manualdate to date object
 $exportonlysecretsbeforeDateconverted = (Get-Date $exportonlysecretsbeforeDatevalue)
 
-# Define the user credentials
-$username = Read-Host -Prompt "Enter your userid: ";
-$password = Read-Host -Prompt "Enter your password: " -AsSecureString;
-$otp = Read-Host -Prompt "Enter your OTP for 2FA (displayed in your 2FA app): " -AsSecureString;
+if ($scriptauth -eq "oauth")
+    {
+        $proxy = New-WebServiceProxy -uri $urlOauth -UseDefaultCredential -Namespace "ss"
+        # Define the user credentials
+        $username = Read-Host -Prompt "Enter your userid: ";
+        $password = Read-Host -Prompt "Enter your password: " -AsSecureString;
+    }
 
-#store password
-$Credentials = New-Object System.Management.Automation.PSCredential `
-     -ArgumentList $username, $password
+if ($scriptauth -eq "windows")
+    {
+        $proxy = New-WebServiceProxy -uri $urlWindows -UseDefaultCredential 
+    }
 
-$CredentialsOTP = New-Object System.Management.Automation.PSCredential `
-     -ArgumentList $username, $otp
-$tokenResult = $proxy.AuthenticateRADIUS($username, $Credentials.GetNetworkCredential().Password, '', $domain, $CredentialsOTP.GetNetworkCredential().Password)
-if($tokenResult.Errors.Count -gt 0)
-{
-    echo "Authentication Error: " +  $tokenResult.Errors[0]
-    Return
-}
-$token = $tokenResult.Token
+if ($authenticateRadiusOTP -eq $true)
+    {
+        $otp = Read-Host -Prompt "Enter your OTP for 2FA (displayed in your 2FA app): " -AsSecureString;
+    }
 
-# remove password and otp from memory
-Remove-Variable password
-Remove-Variable otp
-Remove-Variable Credentials
-Remove-Variable CredentialsOTP
+
+if ($scriptauth -eq "oauth")
+    {
+        #store password
+        $Credentials = New-Object System.Management.Automation.PSCredential `
+             -ArgumentList $username, $password
+    }
+
+# Authenticate with oauth and radius
+if ($authenticateRadiusOTP -eq $true -and $scriptauth -eq "oauth")
+    {
+    $CredentialsOTP = New-Object System.Management.Automation.PSCredential `
+         -ArgumentList $username, $otp
+
+        $tokenResult = $proxy.AuthenticateRADIUS($username, $Credentials.GetNetworkCredential().Password, '', $domain, $CredentialsOTP.GetNetworkCredential().Password)
+        if($tokenResult.Errors.Count -gt 0)
+        {
+            echo "Authentication Error: " +  $tokenResult.Errors[0]
+            Return
+        }
+        $token = $tokenResult.Token
+        # remove password and otp from memory
+        Remove-Variable password
+        Remove-Variable otp
+        Remove-Variable Credentials
+        Remove-Variable CredentialsOTP
+    }
+
+# Authenticate with oauth only
+if ($authenticateRadiusOTP -eq $false -and $scriptauth -eq "oauth")
+    {
+
+        $tokenResult = $proxy.Authenticate($username, $Credentials.GetNetworkCredential().Password, '', $domain)
+        if($tokenResult.Errors.Count -gt 0)
+        {
+            echo "Authentication Error: " +  $tokenResult.Errors[0]
+            Return
+        }
+        $token = $tokenResult.Token
+        # remove password from memory
+        Remove-Variable password
+        Remove-Variable Credentials
+    }
+
+
+
 
  #check templatename
-   $templateIdCollection = $proxy.GetSecretTemplates($token).SecretTemplates | Where {$_.Name -eq $templateName}
+ if ($scriptauth -eq "oauth")
+    {
+        $templateIdCollection = $proxy.GetSecretTemplates($token).SecretTemplates | Where {$_.Name -eq $templateName}
+    } else { 
+        #windows auth
+        $templateIdCollection = $proxy.GetSecretTemplates.SecretTemplates | Where {$_.Name -eq $templateName}
+    } 
     if($templateIdCollection -eq $null)
     {
        $msg =  "Error: Unable to find Secret Template " +  $templateName
@@ -124,8 +192,6 @@ Remove-Variable CredentialsOTP
   #      Return
   #  }
 
-echo "--------------------------------------------"
-
 write-host "Templatename: " -NoNewline
 write-host $templateName -NoNewline
 write-host " ID: " -NoNewline
@@ -141,7 +207,13 @@ echo "--------------------------------------------"
 
 echo "Searching for secrets in folder $folderId with templateid:$templateId"
 #SearchSecretsByFolder(token, searchTerm, folderId, includeSubFolders, includeDeleted, includeRestriced)
-$secretSummaries = $proxy.SearchSecretsByFolder($token, "", $folderId, $searchsubfolders, $false, $false).SecretSummaries
+if ($scriptauth -eq "oauth")
+    {
+        $secretSummaries = $proxy.SearchSecretsByFolder($token, "", $folderId, $searchsubfolders, $false, $false).SecretSummaries
+    } else {
+        #windowsauth
+        $secretSummaries = $proxy.SearchSecretsByFolder("", $folderId, $searchsubfolders, $false, $false).SecretSummaries
+    }
 
 echo "--------------------------------------------"
 
@@ -155,7 +227,13 @@ foreach($secretSummary in $secretSummaries)
     if ($secretSummary.SecretTypeId -eq $templateId)
 	    {
 
-       $secret = $proxy.GetSecret($token, $secretSummary.SecretId, $false, $null);
+        if ($scriptauth -eq "oauth")
+            {
+                $secret = $proxy.GetSecret($token, $secretSummary.SecretId, $false, $null);
+            } else {
+                #windows auth
+                $secret = $proxy.GetSecret($secretSummary.SecretId, $false, $null); 
+            }
 
         $Hash = [ordered]@{}
         $Hashindex = [ordered]@{}
@@ -195,7 +273,13 @@ foreach($secretSummary in $secretSummaries)
                                 Remove-Variable testvar
 
                                 $Hashfolder = [ordered]@{}
-                                $secretfolderResult = $proxy.FolderGet($Token,$secret.Secret.FolderId)
+                                if ($scriptauth -eq "oauth")
+                                    {
+                                        $secretfolderResult = $proxy.FolderGet($Token,$secret.Secret.FolderId)
+                                    } else {
+                                        #windows auth
+                                        $secretfolderResult = $proxy.FolderGet($secret.Secret.FolderId)
+                                    }
 
                                 # debug issue-374730518
                                 #write-host
@@ -207,7 +291,13 @@ foreach($secretSummary in $secretSummaries)
                                 if ( $secretfolderResult.Folder.Id -ne $null )
                                 {
                                 $Hashfolder.add($secretfolderResult.Folder.Name,$secretfolderResult.Folder.Id)
-                                $parentfolderResult = $proxy.FolderGet($Token,$secretfolderResult.Folder.ParentFolderId)
+                                if ($scriptauth -eq "oauth")
+                                    {
+                                        $parentfolderResult = $proxy.FolderGet($Token,$secretfolderResult.Folder.ParentFolderId)
+                                    } else {
+                                        #windows auth
+                                        $parentfolderResult = $proxy.FolderGet($secretfolderResult.Folder.ParentFolderId)
+                                    }
 
                                 #checking if we have only one level then not add the parent
                                 if ($parentfolderResult.Folder.Id -ne $null )
@@ -216,10 +306,16 @@ foreach($secretSummary in $secretSummaries)
                                     } 
 
                                     $loopbreakpoint=0
-                                    #$parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                               
                                     DO
                                     {
-                                    $parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                                    if ($scriptauth -eq "oauth")
+                                        {
+                                            $parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                                        } else {
+                                            #windows auth
+                                            $parentfolderResult = $proxy.FolderGet($parentfolderResult.Folder.ParentFolderId)
+                                        }
                                     if ($parentfolderResult.Folder.Id -ne $null )
                                         {
                                             $Hashfolder.add($parentfolderResult.Folder.Name,$parentfolderResult.Folder.Id)
@@ -293,7 +389,13 @@ foreach($secretSummary in $secretSummaries)
                 if ($exportonlysecretsbeforeDate -eq $true)
                     {
                     # fetch the audit
-                    $auditResult = $proxy.GetSecretAudit($Token,$exportitem)
+                    if ($scriptauth -eq "oauth")
+                        {
+                            $auditResult = $proxy.GetSecretAudit($Token,$exportitem)
+                        } else {
+                            #windows auth
+                            $auditResult = $proxy.GetSecretAudit($exportitem)
+                        }
                     $getlastCREATE =  $auditResult.SecretAudits | select  -Property Action, DateRecorded  | ? { $_ -match "CREATE"  }
                     $getlastUPDATE =  $auditResult.SecretAudits | select  -Property Action, DateRecorded  | ? { $_ -match "UPDATE"  } 
 
@@ -379,4 +481,3 @@ Remove-Variable hash
 Remove-Variable hashfolder
 Remove-Variable token
 Remove-Variable tokenResult
- 
