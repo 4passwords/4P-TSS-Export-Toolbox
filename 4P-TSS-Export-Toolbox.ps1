@@ -40,7 +40,7 @@
 # Define the proxy
 $url = "https://yousecretserver.url/folder"
 
-# craft the 
+# Craft the Authentication Url's
 $urlOauth = $url + "/webservices/sswebservice.asmx"
 $urlWindows = $url + "/winauthwebservices/sswinauthwebservice.asmx"
 
