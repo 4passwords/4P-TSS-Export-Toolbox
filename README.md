@@ -7,9 +7,9 @@ The feature to export by template is something we were missing for years. In thi
 The scripts features are:
 
 - Export all secrets by template
-- Export all secrets by template and from a given dat that were updated or changed
-- Export also pathname to be used in the Secret Server Import
-- Specify custom pathname or not pathname at all
+- Export all secrets by template from a given date that were updated or changed
+- Export Full pathnames to be used in the Secret Server Import
+- Added options to Specify custom pathname or no pathname at all
 
 TODO improvements:
 
