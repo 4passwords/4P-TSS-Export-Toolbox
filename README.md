@@ -19,10 +19,9 @@ TODO testing:
 
 TODO improvements:
 
-- TODO-Improvement: Create Authentication wrapper to use Windows Authentication and other authentication options
 - TODO-Improvement: Export All templates to a file or console
 - TODO-Improvement: Export also Restricted Secrets, like require comment or checkin/checkout (so they are exported and the secret will be created)
-- TODO-Improvement: Enemurate the Foldername as is done with the Template name (in combination of suppling a path or previous)
+- TODO-Improvement: Enemurate the Foldername as is done with the Template name (the idea is to supply a Full pathname)
 
 To use the script, you need to change the preferences inside the script that are in the top
 
