@@ -1,3 +1,4 @@
+#requires -version 3.0
 #
 # export secrets by template v1.2.5
 # by jan dijk | MCCS | 4passwords.com
