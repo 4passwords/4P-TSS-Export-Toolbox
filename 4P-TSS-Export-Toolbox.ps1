@@ -1,18 +1,20 @@
 
 #
 #
-# export Thycotic Secret Server secrets by template and more  v1.2.4
+# export secrets by template v1.2.5
 # by jan dijk | MCCS | 4passwords.com
+# https://github.com/4passwords/4P-TSS-Export-Toolbox
 #
-# Features: 
+# set the booleans and variables below in the preferences section
+# you can copy the csv output directly in the import section of Secret server to import the exported secrets by template or date.
+#
+#
+# Script Features: 
+#
 # Export by template, by folder or subfolders
 # Export by datechanged after X (good for migrations and or finding out changes overtime0
 # Export foldernames and or override the foldernames in the exportlist (to customize and or be flexible for the import) or export no foldernames at all
-#  
-# 
-# set the booleans and variables below
-#
-# you can copy the csv output directly in the import section of Secret server to import the exported secrets by tempalte or date.
+# Export secrets with issue-374730518 to a configurable "Lost and Found" folder
 #
 # TODO-Improvement: Export results to a file
 # TODO-Improvement: Create Authentication wrapper to use Windows Authentication and other authentication options
@@ -23,6 +25,13 @@
 # Note: you will only export secrets that you have permission on and do not have any checkout or requirement comment security options enabled.
 # enable the unlimited administrative mode to make sure you can export all secrets that are in secret server.
 #
+# issue-374730518: there is a small bug in retrieving a foldername from the api or the Thycotic interface, when you do not have all permissions on the folder tree (when a secret is shared from a folder directly)
+# https://github.com/4passwords/4P-TSS-Export-Toolbox/issues/1#issue-374730518
+# to work arround this: 1) turn off Admin/Configuration/Folder/View Permission on Specific Folder for Visibility or 2) unlimited admin mode or have permissions
+#
+# issue-374737457: there is a maximum runtime of the script. this is a hard set configurable parameter within Thycotic Secret Server (default 20 minutes)
+# go Admin/General/Session Timeout for Webservices and configure it for the runtime you need for the export to complete
+#
 #
 
 ###### Script preferences / settings
@@ -30,7 +39,13 @@
 #
 
 # Define the proxy
-$url = "https://yoursecretserver.uri/webservices/sswebservice.asmx"
+$url = "https://yoursecretserver.url/webservices/sswebservice.asmx"
+
+#enter the short domainname, local or empty
+$domain = ''
+
+#give the exact template name
+$templateName = "SSH"
 
 # the folderid -1 is the root or open a secret in a folder and see the folderid in the url
 $folderId = "-1"
@@ -43,19 +58,16 @@ $addfolderpathtoexport = $true
 
 # override folder path from the exported secret path with a custom path
 $overridefolderpath = $false
-$overridefolderpathValue = "/Import"
+$overridefolderpathValue = "\Import"
 
-#give the exact template name
-$templateName = "SSH"
+# specify the path where we need to place secrets that are affected by issue-374730518
+$lostandfoundpathValue = "\Lost & Found"
 
 #specify the date to lookforupdated or created secrets (specify the date below)
 $exportonlysecretsbeforeDate = $false
 
 # enter the date in the format below dd-MM-yyyy hh:mm:ss
 $exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
-
-#enter the short domainname, local or empty
-$domain = ''
 
 #
 #
@@ -186,43 +198,60 @@ foreach($secretSummary in $secretSummaries)
 
                                 $Hashfolder = [ordered]@{}
                                 $secretfolderResult = $proxy.FolderGet($Token,$secret.Secret.FolderId)
-                                $Hashfolder.add($secretfolderResult.Folder.Name,$secretfolderResult.Folder.Id)
 
+                                # debug issue-374730518
+                                #write-host
+                                #write-host  "folderid:" $secretfolderResult.Folder.Id -NoNewline
+                                #write-host  " foldername:" $secretfolderResult.Folder.name -NoNewline
+                                #Write-Host
+
+                                # check if we have issue-374730518 and skipt the retrieve folderpathbug with no rights to full folder
+                                if ( $secretfolderResult.Folder.Id -ne $null )
+                                {
+                                $Hashfolder.add($secretfolderResult.Folder.Name,$secretfolderResult.Folder.Id)
                                 $parentfolderResult = $proxy.FolderGet($Token,$secretfolderResult.Folder.ParentFolderId)
 
-                                if ($parentfolderResult.Folder.Id -ne $null)
-                        
+                                #checking if we have only one level then not add the parent
+                                if ($parentfolderResult.Folder.Id -ne $null )
                                     { 
                                     $Hashfolder.add($parentfolderResult.Folder.Name,$parentfolderResult.Folder.Id)  
                                     } 
 
-                                $loopbreakpoint=0
-                                #$parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
-                                DO
-                                {
-                                $parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
-                                if ($parentfolderResult.Folder.Id -ne $null )
+                                    $loopbreakpoint=0
+                                    #$parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                                    DO
                                     {
-                                        $Hashfolder.add($parentfolderResult.Folder.Name,$parentfolderResult.Folder.Id)
-                                    }
-                                if ($parentfolderResult.Folder.Id -eq $null )
-                                    {
-                                        $loopbreakpoint=1
-                                    }
+                                    $parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                                    if ($parentfolderResult.Folder.Id -ne $null )
+                                        {
+                                            $Hashfolder.add($parentfolderResult.Folder.Name,$parentfolderResult.Folder.Id)
+                                        }
+                                    if ($parentfolderResult.Folder.Id -eq $null )
+                                        {
+                                            $loopbreakpoint=1
+                                        }
 
-                                } While ($loopbreakpoint=0)
+                                    } While ($loopbreakpoint=0)
 
-                                $reversefolderindex = New-Object System.Collections.ArrayList
-                                foreach($BuildFolderlist in $Hashfolder.Keys)
-                                    {
-                                        $reversefolderindex.Add($BuildFolderlist) > null
-                                    }
-                                $reversefolderindex.Reverse()
+                                    $reversefolderindex = New-Object System.Collections.ArrayList
+                                    foreach($BuildFolderlist in $Hashfolder.Keys)
+                                        {
+                                            $reversefolderindex.Add($BuildFolderlist) > null
+                                        }
+                                    $reversefolderindex.Reverse()
                         
-                                ForEach ($folderitem in $reversefolderindex) { $generatedfolderpath = $generatedfolderpath + "/$folderitem" }
-                                $Hash.Add("Folder Name", $generatedfolderpath)
-                                Remove-Variable generatedfolderpath
+                                    ForEach ($folderitem in $reversefolderindex) { $generatedfolderpath = $generatedfolderpath + "\$folderitem" }
+                                    $Hash.Add("Folder Name", $generatedfolderpath)
 
+                                    Remove-Variable generatedfolderpath
+
+                                  # end of adding single item to path
+                                } else {
+
+                                # give the issue-374730518 secrets a special folder
+                                $Hash.Add("Folder Name", $lostandfoundpathValue)
+
+                                }
                             # end of root check
                             }
 
