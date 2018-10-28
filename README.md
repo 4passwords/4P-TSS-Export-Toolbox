@@ -15,7 +15,7 @@ The scripts features are:
 
 TODO testing:
 
-- TODO-TEST: Authentication methods oauth with or withour Radius/OTP are tested, windows authentication needs to be fully tested.
+- TODO-TEST: Authentication methods oauth with or without Radius/OTP are tested, windows authentication needs to be fully tested.
 
 TODO improvements:
 
