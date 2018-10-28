@@ -10,15 +10,14 @@
 # Script Features: 
 #
 # Export by template, by folder or subfolders
-# Export by datechanged after X (good for migrations and or finding out changes overtime0
+# Export all secrets by template from a given date that were updated or changed (good for migrations and or finding out changes overtime0
 # Export foldernames and or override the foldernames in the exportlist (to customize and or be flexible for the import) or export no foldernames at all
 # Export secrets with issue-374730518 to a configurable "Lost and Found" folder
 #
-# TODO-Improvement: Export results to a file
 # TODO-Improvement: Create Authentication wrapper to use Windows Authentication and other authentication options
 # TODO-Improvement: Export All templates to a file or console
 # TODO-Improvement: Export also Restricted Secrets, like require comment or checkin/checkout (so they are exported and the secret will be created)
-# TODO-Improvement: Enemurate the Foldername as is done with the Template name (in combination of suppliing a path or previous)
+# TODO-Improvement: Enemurate the Foldername as is done with the Template name (in combination of suppling a path or previous)
 #
 # Note: you will only export secrets that you have permission on and do not have any checkout or requirement comment security options enabled.
 # enable the unlimited administrative mode to make sure you can export all secrets that are in secret server.
