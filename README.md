@@ -20,7 +20,7 @@ TODO improvements:
 - Enumerate the Foldername as is done with the Template name (in combination of suppliing a path or previous)
 
 To use the script, you need to change the preferences inside the script that are in the top
-
+```powershell
 #Script preferences / settings
 
 #Define the proxy
