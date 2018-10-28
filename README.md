@@ -24,32 +24,32 @@ To use the script, you need to change the preferences inside the script that are
 #Script preferences / settings
 
 #Define the proxy
-$url = "https://yoursecretserver.uri/webservices/sswebservice.asmx"
+url = "https://yoursecretserver.uri/webservices/sswebservice.asmx"
 
 #the folderid -1 is the root or open a secret in a folder and see the folderid in the url
-$folderId = "-1"
+folderId = "-1"
 
 #walk on all the subfolders set it to $true or $false
-$searchsubfolders = $true
+searchsubfolders = $true
 
 #add the folder path of the secret to the export list
-$addfolderpathtoexport = $true
+addfolderpathtoexport = $true
 
 #override folder path from the exported secret path with a custom path
-$overridefolderpath = $false
-$overridefolderpathValue = "/Import"
+overridefolderpath = $false
+overridefolderpathValue = "/Import"
 
 #give the exact template name
-$templateName = "SSH"
+templateName = "SSH"
 
 #specify the date to lookforupdated or created secrets (specify the date below)
-$exportonlysecretsbeforeDate = $false
+exportonlysecretsbeforeDate = $false
 
 #enter the date in the format below dd-MM-yyyy hh:mm:ss
-$exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
+exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
 
 #enter the short domainname, local or empty
-$domain = ''
+domain = ''
 
 #END Script preferences.
 
