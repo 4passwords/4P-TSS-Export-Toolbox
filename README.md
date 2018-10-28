@@ -8,11 +8,11 @@ The scripts features are:
 
 - Export all secrets by template
 - Export all secrets by template and from a given dat that were updated or changed
+- Export also pathname to be used in the Secret Server Import
+- Specify custom pathname or not pathname at all
 
 TODO improvements:
 
-- Export also pathname to be used in the Secret Server Import
-- Specify custom pathname or not pathname at all
 - Export results to a file
 - Create Authentication wrapper to use Windows Authentication and other authentication options (currently only UID+Pass and OTP)
 - Export All templates to seperate files or console
