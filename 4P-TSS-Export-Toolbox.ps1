@@ -1,16 +1,19 @@
 
 #
 #
-# 4P-TSS-Export-Toolbox v1.2.3
+# export secrets by template v1.2.4
 # by jan dijk | MCCS | 4passwords.com
 #
-# features: export by template, by folder or subfolders & export by datechanged after X
+# Features: 
+# Export by template, by folder or subfolders
+# Export by datechanged after X (good for migrations and or finding out changes overtime0
+# Export foldernames and or override the foldernames in the exportlist (to customize and or be flexible for the import) or export no foldernames at all
+#  
+# 
 # set the booleans and variables below
 #
 # you can copy the csv output directly in the import section of Secret server to import the exported secrets by tempalte or date.
 #
-# TODO-Improvement: Export also pathname to be used in the Secret Server Import
-# TODO-Improvement: Specify custom pathname or not pathname at all
 # TODO-Improvement: Export results to a file
 # TODO-Improvement: Create Authentication wrapper to use Windows Authentication and other authentication options
 # TODO-Improvement: Export All templates to a file or console
@@ -27,13 +30,20 @@
 #
 
 # Define the proxy
-$url = "https://yoursecretserver.url/webservices/sswebservice.asmx"
+$url = "https://yoursecretserver.uri/webservices/sswebservice.asmx"
 
 # the folderid -1 is the root or open a secret in a folder and see the folderid in the url
 $folderId = "-1"
 
 # walk on all the subfolders set it to $true or $false
 $searchsubfolders = $true
+
+# add the folder path of the secret to the export list
+$addfolderpathtoexport = $true
+
+# override folder path from the exported secret path with a custom path
+$overridefolderpath = $false
+$overridefolderpathValue = "/Import"
 
 #give the exact template name
 $templateName = "SSH"
@@ -42,7 +52,7 @@ $templateName = "SSH"
 $exportonlysecretsbeforeDate = $false
 
 # enter the date in the format below dd-MM-yyyy hh:mm:ss
-$exportonlysecretsbeforeDatevalue = "12-12-2014 23:00:01"
+$exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
 
 #enter the short domainname, local or empty
 $domain = ''
@@ -86,7 +96,6 @@ Remove-Variable otp
 Remove-Variable Credentials
 Remove-Variable CredentialsOTP
 
- 
  #check templatename
    $templateIdCollection = $proxy.GetSecretTemplates($token).SecretTemplates | Where {$_.Name -eq $templateName}
     if($templateIdCollection -eq $null)
@@ -123,7 +132,6 @@ echo "--------------------------------------------"
 echo "Searching for secrets in folder $folderId with templateid:$templateId"
 #SearchSecretsByFolder(token, searchTerm, folderId, includeSubFolders, includeDeleted, includeRestriced)
 $secretSummaries = $proxy.SearchSecretsByFolder($token, "", $folderId, $searchsubfolders, $false, $false).SecretSummaries
-$sb = new-object system.text.stringBuilder
 
 echo "--------------------------------------------"
 
@@ -151,6 +159,76 @@ foreach($secretSummary in $secretSummaries)
             {
             $Hash.Add($Item.FieldName, $Item.Value)
             }
+            
+        # add the folderpath
+
+        if ($addfolderpathtoexport -eq $true) 
+            {
+
+                if ($overridefolderpath -eq $true)
+                    {
+                       #add the override folder to the hash
+                       $Hash.Add("Folder Name", "$overridefolderpathValue")
+                    } else {
+                        # enumerate the folder structure of a secret. and add it
+
+                        # special case if the secret is in the root, then there is no path name and we need to skip it
+                        if ( $secret.Secret.FolderId -ne "-1" )
+
+                            {
+
+                                #fetchfullfolderpatch
+                                $testvar = Test-Path variable:Hashfolder
+                                if ( $testvar -eq $true ) {
+                                    $Hashfolder.clear()
+                                    }
+                                Remove-Variable testvar
+
+                                $Hashfolder = [ordered]@{}
+                                $secretfolderResult = $proxy.FolderGet($Token,$secret.Secret.FolderId)
+                                $Hashfolder.add($secretfolderResult.Folder.Name,$secretfolderResult.Folder.Id)
+
+                                $parentfolderResult = $proxy.FolderGet($Token,$secretfolderResult.Folder.ParentFolderId)
+
+                                if ($parentfolderResult.Folder.Id -ne $null)
+                        
+                                    { 
+                                    $Hashfolder.add($parentfolderResult.Folder.Name,$parentfolderResult.Folder.Id)  
+                                    } 
+
+                                $loopbreakpoint=0
+                                #$parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                                DO
+                                {
+                                $parentfolderResult = $proxy.FolderGet($Token,$parentfolderResult.Folder.ParentFolderId)
+                                if ($parentfolderResult.Folder.Id -ne $null )
+                                    {
+                                        $Hashfolder.add($parentfolderResult.Folder.Name,$parentfolderResult.Folder.Id)
+                                    }
+                                if ($parentfolderResult.Folder.Id -eq $null )
+                                    {
+                                        $loopbreakpoint=1
+                                    }
+
+                                } While ($loopbreakpoint=0)
+
+                                $reversefolderindex = New-Object System.Collections.ArrayList
+                                foreach($BuildFolderlist in $Hashfolder.Keys)
+                                    {
+                                        $reversefolderindex.Add($BuildFolderlist) > null
+                                    }
+                                $reversefolderindex.Reverse()
+                        
+                                ForEach ($folderitem in $reversefolderindex) { $generatedfolderpath = $generatedfolderpath + "/$folderitem" }
+                                $Hash.Add("Folder Name", $generatedfolderpath)
+                                Remove-Variable generatedfolderpath
+
+                            # end of root check
+                            }
+
+                    }
+                
+            } 
 
 
         # walk the array of shame (header)
@@ -271,6 +349,7 @@ foreach($secretSummary in $secretSummaries)
 $printheaderamount = 0
 $hash.Clear()
 Remove-Variable hash
+Remove-Variable hashfolder
 Remove-Variable token
 Remove-Variable tokenResult
  
