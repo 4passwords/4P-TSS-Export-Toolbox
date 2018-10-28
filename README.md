@@ -1,5 +1,5 @@
 # 4Passwords / Thycotic Secret Server Export Toolbox
-# v1.2.5
+# v1.2.6
 
 This powershell script is a script to Export Secrets from Thycotic Secret Server by Template and by date in an format that can be imported in secret server.
 
@@ -11,6 +11,11 @@ The scripts features are:
 - Export all secrets by template from a given date that were updated or changed (good for migrations and or finding out changes overtime0
 - Export foldernames and or override the foldernames in the exportlist (to customize and or be flexible for the import) or export no foldernames at all
 - Export secrets with issue-374730518 to a configurable "Lost and Found" folder
+- Authentication wrapper to use Oauth Authentication, Radius/OTP and Windows Authentication
+
+TODO testing:
+
+- TODO-TEST: Authentication methods oauth with or withour Radius/OTP are tested, windows authentication needs to be fully tested.
 
 TODO improvements:
 
@@ -27,7 +32,19 @@ To use the script, you need to change the preferences inside the script that are
 #
 
 # Define the proxy
-$url = "https://yoursecretserver.url/webservices/sswebservice.asmx"
+$url = "https://yoursecretserver.url/folder"
+
+# craft the 
+$urlOauth = $url + "/webservices/sswebservice.asmx"
+$urlWindows = $url + "/winauthwebservices/sswinauthwebservice.asmx"
+
+# script authentication method 
+# use Windows Authentication or Oauth. (optoins: oauth,windows)
+#
+$scriptauth = "oauth"
+#
+# ask for otp / radius
+$authenticateRadiusOTP = $true
 
 #enter the short domainname, local or empty
 $domain = ''
@@ -60,6 +77,7 @@ $exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
 #
 #
 #### END Script preferences.
+
 
 
 
