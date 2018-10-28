@@ -1,7 +1,7 @@
 
 #
 #
-# export secrets by template v1.2.4
+# export Thycotic Secret Server secrets by template and more  v1.2.4
 # by jan dijk | MCCS | 4passwords.com
 #
 # Features: 
