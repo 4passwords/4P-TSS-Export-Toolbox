@@ -330,7 +330,12 @@ foreach($secretSummary in $secretSummaries)
                                     $reversefolderindex = New-Object System.Collections.ArrayList
                                     foreach($BuildFolderlist in $Hashfolder.Keys)
                                         {
-                                            $reversefolderindex.Add($BuildFolderlist) > null
+					try {
+                                            $reversefolderindex.Add($BuildFolderlist) | Out-null
+                                                }
+                                            catch [Exception] {
+                                                    # Do nothing to supress >null without warnings
+                                                }
                                         }
                                     $reversefolderindex.Reverse()
                         
