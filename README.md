@@ -1,5 +1,5 @@
 # 4Passwords / Thycotic Secret Server Export Toolbox
-# v1.2.6
+# v1.2.7
 
 This powershell script is a script to Export Secrets from Thycotic Secret Server by Template and by date in an format that can be imported in secret server.
 
@@ -68,11 +68,11 @@ $overridefolderpathValue = "\Import"
 # specify the path where we need to place secrets that are affected by issue-374730518
 $lostandfoundpathValue = "\Lost & Found"
 
-#specify the date to lookforupdated or created secrets (specify the date below)
-$exportonlysecretsbeforeDate = $false
+#specify the date to look for updated or created secrets after a given date (specify the date below)
+$exportonlysecretsafterDate = $false
 
 # enter the date in the format below dd-MM-yyyy hh:mm:ss
-$exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
+$exportonlysecretsafterDatevalue = "01-02-2015 23:00:01"
 
 #
 #
