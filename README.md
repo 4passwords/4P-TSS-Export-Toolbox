@@ -34,6 +34,9 @@ To use the script, you need to change the preferences inside the script that are
 # Define the proxy
 $url = "https://yoursecretserver.url/folder"
 
+#enter the short domainname, local or empty
+$domain = ''
+
 # Craft the Authentication Url's
 $urlOauth = $url + "/webservices/sswebservice.asmx"
 $urlWindows = $url + "/winauthwebservices/sswinauthwebservice.asmx"
@@ -45,9 +48,6 @@ $scriptauth = "oauth"
 #
 # ask for otp / radius
 $authenticateRadiusOTP = $true
-
-#enter the short domainname, local or empty
-$domain = ''
 
 #give the exact template name
 $templateName = "SSH"
