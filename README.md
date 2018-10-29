@@ -20,8 +20,9 @@ TODO testing:
 TODO improvements:
 
 - TODO-Improvement: Export All templates to a file or console
-- TODO-Improvement: Export also Restricted Secrets, like require comment or checkin/checkout (so they are exported and the secret will be created)
+- TODO-Improvement: Export also Restricted Secrets, like require comment or checkin/checkout (so they are exported and the secret will be created) 
 - TODO-Improvement: Enemurate the Foldername as is done with the Template name (the idea is to supply a Full pathname)
+- TODO-Improvement: Optionally encrypt exported files with Windows file system Encryption (if stored on a supported filesystem), this will lock the export files to the account it is running on.
 
 To use the script, you need to change the preferences inside the script that are in the top
 
