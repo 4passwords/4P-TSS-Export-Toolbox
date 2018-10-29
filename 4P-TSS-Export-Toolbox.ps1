@@ -1,6 +1,6 @@
 #requires -version 3.0 
 #
-# export secrets by template v1.2.6
+# export secrets by template v1.2.7
 # by jan dijk | MCCS | 4passwords.com
 # https://github.com/4passwords/4P-TSS-Export-Toolbox
 #
@@ -20,6 +20,7 @@
 # TODO-Improvement: Export All templates to a file or console
 # TODO-Improvement: Export also Restricted Secrets, like require comment or checkin/checkout (so they are exported and the secret will be created)
 # TODO-Improvement: Enemurate the Foldername as is done with the Template name (the idea is to supply a Full pathname)
+# TODO-Improvement: Optionally encrypt exported files with Windows file system Encryption (if stored on a supported filesystem), this will lock the export files to the account it is running on.
 #
 # Note: you will only export secrets that you have permission on and do not have any checkout or requirement comment security options enabled.
 # enable the unlimited administrative mode to make sure you can export all secrets that are in secret server.
@@ -38,7 +39,7 @@
 #
 
 # Define the proxy
-$url = "https://yousecretserver.url/folder"
+$url = "https://yoursecretserver.url/folder"
 
 #enter the short domainname, local or empty
 $domain = ''
@@ -74,11 +75,11 @@ $overridefolderpathValue = "\Import"
 # specify the path where we need to place secrets that are affected by issue-374730518
 $lostandfoundpathValue = "\Lost & Found"
 
-#specify the date to lookforupdated or created secrets (specify the date below)
-$exportonlysecretsbeforeDate = $false
+#specify the date to look for updated or created secrets after a given date (specify the date below)
+$exportonlysecretsafterDate = $false
 
 # enter the date in the format below dd-MM-yyyy hh:mm:ss
-$exportonlysecretsbeforeDatevalue = "01-02-2015 23:00:01"
+$exportonlysecretsafterDatevalue = "01-02-2015 23:00:01"
 
 #
 #
@@ -101,7 +102,7 @@ if ($scriptauth -eq "oauth")
     }
 
 #convert manualdate to date object
-$exportonlysecretsbeforeDateconverted = (Get-Date $exportonlysecretsbeforeDatevalue)
+$exportonlysecretsafterDateconverted = (Get-Date $exportonlysecretsafterDatevalue)
 
 if ($scriptauth -eq "oauth")
     {
@@ -386,12 +387,12 @@ foreach($secretSummary in $secretSummaries)
             if ($exportitemcounter -eq 0) 
                 { 
                 
-                if ($exportonlysecretsbeforeDate -eq $false) {
+                if ($exportonlysecretsafterDate -eq $false) {
                 
                         write-host "$script:secretname," -NoNewline 
                     }
 
-                if ($exportonlysecretsbeforeDate -eq $true)
+                if ($exportonlysecretsafterDate -eq $true)
                     {
                     # fetch the audit
                     if ($scriptauth -eq "oauth")
@@ -421,7 +422,7 @@ foreach($secretSummary in $secretSummaries)
                         $latestauditDateCheck = (Get-Date $latestauditDateRaw)
                         }
 
-                    if($latestauditDateCheck -ge $exportonlysecretsbeforeDateconverted) {
+                    if($latestauditDateCheck -ge $exportonlysecretsafterDateconverted) {
                     
                         write-host "$script:secretname," -NoNewline 
                         } else {
@@ -434,16 +435,16 @@ foreach($secretSummary in $secretSummaries)
                     }
                 $exportitemcounter++
                 } else {
-                if ($exportonlysecretsbeforeDate -eq $true)
+                if ($exportonlysecretsafterDate -eq $true)
                     {
                         #write-host "--- " -NoNewline
                         #write-host $latestauditDateCheck -NoNewline
                         #write-host " vs " -NoNewline
-                        #write-host $exportonlysecretsbeforeDateconverted -NoNewline
+                        #write-host $exportonlysecretsafterDateconverted -NoNewline
                         #write-host " ---" -NoNewline
                         #write-host ""
 
-                        if($latestauditDateCheck -ge $exportonlysecretsbeforeDateconverted) {
+                        if($latestauditDateCheck -ge $exportonlysecretsafterDateconverted) {
                         write-host `"$exportitem`"`, -NoNewline
                         
                         } else {
@@ -461,9 +462,9 @@ foreach($secretSummary in $secretSummaries)
                 }
             }
 
-        if ($exportonlysecretsbeforeDate -eq $true) {
+        if ($exportonlysecretsafterDate -eq $true) {
 
-                    if($latestauditDateCheck -ge $exportonlysecretsbeforeDateconverted) {
+                    if($latestauditDateCheck -ge $exportonlysecretsafterDateconverted) {
                         #uncomment to debug the dates the secrets are hitted on
                         #write-host "$latestauditDateCheck," -NoNewline
                         write-host 
