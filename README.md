@@ -1,5 +1,5 @@
 # 4Passwords / Thycotic Secret Server Export Toolbox
-# v1.2.7
+# v1.2.8 - feature/all-templates-by-file
 
 This powershell script is a script to Export Secrets from Thycotic Secret Server by Template and by date in an format that can be imported in secret server.
 

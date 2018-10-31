@@ -1,6 +1,6 @@
 #requires -version 3.0 
 #
-# export secrets by template v1.2.7
+# export secrets by template v1.2.8 - feature/all-templates-by-file
 # by jan dijk | MCCS | 4passwords.com
 # https://github.com/4passwords/4P-TSS-Export-Toolbox
 #
