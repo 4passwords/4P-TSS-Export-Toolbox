@@ -487,3 +487,9 @@ Remove-Variable hash
 Remove-Variable hashfolder
 Remove-Variable token
 Remove-Variable tokenResult
+                    if ($getlastCREATE -ne $null) { Remove-Variable getlastCREATE }
+                    if ($getlastUPDATE -ne $null) { Remove-Variable getlastUPDATE }
+                    if ($auditResult -ne $null) { Remove-Variable auditResult }
+                                        if ($collectDates -ne $null) { Remove-Variable collectDates }
+                    if ($latestauditDateRaw -ne $null) { Remove-Variable latestauditDateRaw }
+                    if ($latestauditDateCheck  -ne $null) { Remove-Variable latestauditDateCheck  }
