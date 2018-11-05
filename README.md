@@ -71,8 +71,13 @@ $lostandfoundpathValue = "\Lost & Found"
 #specify the date to look for updated or created secrets after a given date (specify the date below)
 $exportonlysecretsafterDate = $false
 
-# enter the date in the format below dd-MM-yyyy hh:mm:ss
-$exportonlysecretsafterDatevalue = "01-02-2015 23:00:01"
+# enter the date and time information below.
+$tssday="02";
+$tssmonth="07";
+$tssyear="2018";
+$tsshour="09";
+$tssminutes="52";
+$tssseconds="00";
 
 #
 #
